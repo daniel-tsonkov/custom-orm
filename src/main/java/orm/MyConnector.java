@@ -20,9 +20,6 @@ public class MyConnector {
     }
 
     public static Connection getConnection() {
-        /*if (connection == null) {
-            createConnection();
-        }*/
         return connection;
     }
 }
