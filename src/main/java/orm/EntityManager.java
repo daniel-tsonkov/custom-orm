@@ -7,6 +7,7 @@ import anotations.Id;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class EntityManager<E> implements DBContext<E> {
     private Connection connection;
@@ -30,20 +31,21 @@ public class EntityManager<E> implements DBContext<E> {
 
     private boolean doInsert(E entity, Field idColumn) {
         String tableName = this.getTableName(entity.getClass());
+        String tableFields = getColumnsWithoutId(entity.getClass());
+        String tableValues = "";
 
-        getColumnsWithoutId(entity.getClass());
-
-        String insertQuery = String.format("INSERT INTO %s (%s) VALUES ???", tableName);
+        String insertQuery = String.format("INSERT INTO %s (%s) VALUES (%s)", tableName, tableFields);
 
         return false;
     }
 
-    private void getColumnsWithoutId(Class<?> aClass) {
-        Arrays.stream(aClass.getDeclaredFields())
+    private String getColumnsWithoutId(Class<?> aClass) {
+        return Arrays.stream(aClass.getDeclaredFields())
                 .filter(f -> !f.isAnnotationPresent(Id.class))
                 .filter(f -> f.isAnnotationPresent(Column.class))
                 .map(f -> f.getAnnotationsByType(Column.class))
-                .map(a -> a[0].name());
+                .map(a -> a[0].name())
+                .collect(Collectors.joining(","));
     }
 
     private String getTableName(Class<?> aClass) {
