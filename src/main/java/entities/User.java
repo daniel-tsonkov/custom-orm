@@ -1,17 +1,30 @@
 package entities;
 
+import anotations.Column;
+import anotations.Entity;
+import anotations.Id;
+
 import java.time.LocalDate;
 
+@Entity(name = "users")
 public class User {
+    @Id
+    @Column(name = "id")
     private long id;
-    private String username;
-    private int age;
-    private LocalDate registration;
 
-    public User(String username, int age, LocalDate registration) {
+    @Column(name = "username")
+    private String username;
+
+    @Column(name = "age")
+    private int age;
+
+    @Column(name = "registration_date")
+    private LocalDate registrationDate;
+
+    public User(String username, int age, LocalDate registrationDate) {
         this.username = username;
         this.age = age;
-        this.registration = registration;
+        this.registrationDate = registrationDate;
     }
 
     public long getId() {
@@ -38,11 +51,11 @@ public class User {
         this.age = age;
     }
 
-    public LocalDate getRegistration() {
-        return registration;
+    public LocalDate getRegistrationDate() {
+        return registrationDate;
     }
 
-    public void setRegistration(LocalDate registration) {
-        this.registration = registration;
+    public void setRegistrationDate(LocalDate registrationDate) {
+        this.registrationDate = registrationDate;
     }
 }
