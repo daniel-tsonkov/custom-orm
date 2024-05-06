@@ -7,6 +7,7 @@ import anotations.Id;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,10 +53,14 @@ public class EntityManager<E> implements DBContext<E> {
                 .filter(f -> f.isAnnotationPresent(Column.class))
                 .collect(Collectors.toList());
 
+        List<String> values = new ArrayList<>();
         for (Field field : fields) {
             field.setAccessible(true);
-            field.get(aClass);
+            Object o = field.get(aClass);
+            values.add(o.toString());
         }
+
+        return String.join(",", values);
     }
 
     private String getColumnsWithoutId(Class<?> aClass) {
