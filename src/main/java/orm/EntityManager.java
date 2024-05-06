@@ -29,7 +29,8 @@ public class EntityManager<E> implements DBContext<E> {
             return doInsert(entity, idColumn);
         }
 
-        return doUpdate(entity, idColumn);
+        //return doUpdate(entity, idColumn);
+        return false;
     }
 
     private boolean doUpdate(E entity, Field idColumn) {
@@ -37,7 +38,7 @@ public class EntityManager<E> implements DBContext<E> {
     }
 
     private boolean doInsert(E entity, Field idColumn) throws SQLException, IllegalAccessException {
-        String tableName = this.getTableName(entity.getClass());
+        String tableName = getTableName(entity.getClass());
         String tableFields = getColumnsWithoutId(entity.getClass());
         String tableValues = getColumnsValuesWithoutId(entity);
 
@@ -58,7 +59,12 @@ public class EntityManager<E> implements DBContext<E> {
         for (Field field : fields) {
             field.setAccessible(true);
             Object o = field.get(aClass);
-            values.add(o.toString());
+
+            if (o instanceof String) {
+                values.add("'" + o + "'");
+            } else {
+                values.add(o.toString());
+            }
         }
 
         return String.join(",", values);
@@ -107,6 +113,7 @@ public class EntityManager<E> implements DBContext<E> {
         return Arrays.stream(clazz.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(Id.class))
                 .findFirst()
-                .orElseThrow(() -> new UnsupportedOperationException("Entity missing an Id column"));
+                .orElseThrow(() ->
+                        new UnsupportedOperationException("Entity missing an Id column"));
     }
 }
