@@ -1,5 +1,6 @@
 package orm;
 
+import anotations.Entity;
 import anotations.Id;
 
 import java.lang.reflect.Array;
@@ -29,6 +30,10 @@ public class EntityManager<E> implements DBContext<E> {
 
     private boolean doInsert(E entity, Field idColumn) {
         String tableName = this.getTableName(entity.getClass());
+    }
+
+    private String getTableName(Class<?> aClass) {
+        Entity[] annotationsByType = aClass.getAnnotationsByType(Entity.class);
     }
 
     @Override
