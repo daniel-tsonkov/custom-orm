@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class EntityManager<E> implements DBContext<E> {
-    private Connection connection;
+    private final Connection connection;
 
     public EntityManager(Connection connection) {
         this.connection = connection;
@@ -31,10 +31,6 @@ public class EntityManager<E> implements DBContext<E> {
 
         //return doUpdate(entity, idColumn);
         return false;
-    }
-
-    private boolean doUpdate(E entity, Field idColumn) {
-        return true;
     }
 
     private boolean doInsert(E entity, Field idColumn) throws SQLException, IllegalAccessException {
