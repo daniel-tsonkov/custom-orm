@@ -2,8 +2,10 @@ package orm;
 
 import anotations.Id;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.util.Arrays;
 
 public class EntityManager<E> implements DBContext<E> {
     private Connection connection;
@@ -38,15 +40,9 @@ public class EntityManager<E> implements DBContext<E> {
     }
 
     private Field getIdColumn(Class<E> clazz) {
-        Field[] declareFields =  clazz.getDeclaredFields();
-        for (Field declareField : declareFields) {
-            boolean annotationPresent = declareField.isAnnotationPresent(Id.class);
-
-            if (annotationPresent) {
-                return declareField;
-            }
-        }
-
-        throw new UnsupportedOperationException("Entity missing an Id column");
+        return Arrays.stream(clazz.getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Id.class))
+                .findFirst()
+                .orElseThrow(() -> new UnsupportedOperationException("Entity missing an Id column"));
     }
 }
