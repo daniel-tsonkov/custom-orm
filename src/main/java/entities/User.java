@@ -21,6 +21,8 @@ public class User {
     @Column(name = "registration_date")
     private LocalDate registrationDate;
 
+    private LocalDate updatedAt;
+
     public User(String username, int age, LocalDate registrationDate) {
         this.username = username;
         this.age = age;

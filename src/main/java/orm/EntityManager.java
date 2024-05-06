@@ -1,9 +1,9 @@
 package orm;
 
+import anotations.Column;
 import anotations.Entity;
 import anotations.Id;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.util.Arrays;
@@ -30,10 +30,30 @@ public class EntityManager<E> implements DBContext<E> {
 
     private boolean doInsert(E entity, Field idColumn) {
         String tableName = this.getTableName(entity.getClass());
+
+        getColumnsWithoutId(entity.getClass());
+
+        String insertQuery = String.format("INSERT INTO %s (%s) VALUES ???", tableName);
+
+        return false;
+    }
+
+    private void getColumnsWithoutId(Class<?> aClass) {
+        Arrays.stream(aClass.getDeclaredFields())
+                .filter(f -> !f.isAnnotationPresent(Id.class))
+                .filter(f -> f.isAnnotationPresent(Column.class))
+                .map(f -> f.getAnnotationsByType(Column.class))
+                .map(a -> a[0].name());
     }
 
     private String getTableName(Class<?> aClass) {
         Entity[] annotationsByType = aClass.getAnnotationsByType(Entity.class);
+
+        if (annotationsByType.length == 0) {
+            throw new UnsupportedOperationException("Class must be entity");
+        }
+
+        return annotationsByType[0].name();
     }
 
     @Override
