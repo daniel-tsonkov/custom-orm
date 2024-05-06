@@ -7,6 +7,7 @@ import anotations.Id;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +57,7 @@ public class EntityManager<E> implements DBContext<E> {
             field.setAccessible(true);
             Object o = field.get(aClass);
 
-            if (o instanceof String) {
+            if (o instanceof String || o instanceof LocalDate) {
                 values.add("'" + o + "'");
             } else {
                 values.add(o.toString());
