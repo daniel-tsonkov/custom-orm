@@ -39,7 +39,7 @@ public class EntityManager<E> implements DBContext<E> {
     private boolean doInsert(E entity, Field idColumn) throws SQLException, IllegalAccessException {
         String tableName = this.getTableName(entity.getClass());
         String tableFields = getColumnsWithoutId(entity.getClass());
-        String tableValues = getColumnsValuesWithoutId(entity.getClass());
+        String tableValues = getColumnsValuesWithoutId(entity);
 
         String insertQuery = String.format("INSERT INTO %s (%s) VALUES (%s)",
                 tableName, tableFields, tableValues);
@@ -47,7 +47,8 @@ public class EntityManager<E> implements DBContext<E> {
         return connection.prepareStatement(insertQuery).execute();
     }
 
-    private String getColumnsValuesWithoutId(Class<?> aClass) throws IllegalAccessException {
+    private String getColumnsValuesWithoutId(E entity) throws IllegalAccessException {
+        Class<?> aClass = entity.getClass();
         List<Field> fields = Arrays.stream(aClass.getDeclaredFields())
                 .filter(f -> !f.isAnnotationPresent(Id.class))
                 .filter(f -> f.isAnnotationPresent(Column.class))
