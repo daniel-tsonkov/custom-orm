@@ -1,8 +1,11 @@
 package orm;
 
+import anotations.Id;
+
+import java.lang.reflect.Field;
 import java.sql.Connection;
 
-public class EntityManager<E> implements DBContext<E>{
+public class EntityManager<E> implements DBContext<E> {
     private Connection connection;
 
     public EntityManager(Connection connection) {
@@ -32,5 +35,18 @@ public class EntityManager<E> implements DBContext<E>{
     @Override
     public E findFirst(Class<E> table, String where) {
         return null;
+    }
+
+    private Field getIdColumn(Class<E> clazz) {
+        Field[] declareFields =  clazz.getDeclaredFields();
+        for (Field declareField : declareFields) {
+            boolean annotationPresent = declareField.isAnnotationPresent(Id.class);
+
+            if (annotationPresent) {
+                return declareField;
+            }
+        }
+
+        throw new UnsupportedOperationException("Entity missing an Id column");
     }
 }
