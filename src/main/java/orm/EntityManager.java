@@ -15,8 +15,20 @@ public class EntityManager<E> implements DBContext<E> {
     }
 
     @Override
-    public boolean persist(E entity) {
-        return false;
+    public boolean persist(E entity) throws IllegalAccessException {
+        Field idColumn = getIdColumn(entity.getClass());
+        idColumn.setAccessible(true);
+        Object idValue = idColumn.get(entity);
+
+        if (idValue == null || (long) idValue <= 0) {
+            return doInsert(entity, idColumn);
+        }
+
+        return doUpdate(entity, idColumn);
+    }
+
+    private boolean doInsert(E entity, Field idColumn) {
+        String tableName = this.getTableName(entity.getClass());
     }
 
     @Override
@@ -39,7 +51,7 @@ public class EntityManager<E> implements DBContext<E> {
         return null;
     }
 
-    private Field getIdColumn(Class<E> clazz) {
+    private Field getIdColumn(Class<?> clazz) {
         return Arrays.stream(clazz.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(Id.class))
                 .findFirst()
