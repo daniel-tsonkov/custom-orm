@@ -6,7 +6,9 @@ import anotations.Id;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class EntityManager<E> implements DBContext<E> {
@@ -17,7 +19,7 @@ public class EntityManager<E> implements DBContext<E> {
     }
 
     @Override
-    public boolean persist(E entity) throws IllegalAccessException {
+    public boolean persist(E entity) throws IllegalAccessException, SQLException {
         Field idColumn = getIdColumn(entity.getClass());
         idColumn.setAccessible(true);
         Object idValue = idColumn.get(entity);
@@ -29,14 +31,31 @@ public class EntityManager<E> implements DBContext<E> {
         return doUpdate(entity, idColumn);
     }
 
-    private boolean doInsert(E entity, Field idColumn) {
+    private boolean doUpdate(E entity, Field idColumn) {
+        return true;
+    }
+
+    private boolean doInsert(E entity, Field idColumn) throws SQLException, IllegalAccessException {
         String tableName = this.getTableName(entity.getClass());
         String tableFields = getColumnsWithoutId(entity.getClass());
-        String tableValues = "";
+        String tableValues = getColumnsValuesWithoutId(entity.getClass());
 
-        String insertQuery = String.format("INSERT INTO %s (%s) VALUES (%s)", tableName, tableFields);
+        String insertQuery = String.format("INSERT INTO %s (%s) VALUES (%s)",
+                tableName, tableFields, tableValues);
 
-        return false;
+        return connection.prepareStatement(insertQuery).execute();
+    }
+
+    private String getColumnsValuesWithoutId(Class<?> aClass) throws IllegalAccessException {
+        List<Field> fields = Arrays.stream(aClass.getDeclaredFields())
+                .filter(f -> !f.isAnnotationPresent(Id.class))
+                .filter(f -> f.isAnnotationPresent(Column.class))
+                .collect(Collectors.toList());
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+            field.get(aClass);
+        }
     }
 
     private String getColumnsWithoutId(Class<?> aClass) {
