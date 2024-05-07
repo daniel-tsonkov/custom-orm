@@ -7,14 +7,14 @@ import java.util.Properties;
 
 public class MyConnector {
     private static Connection connection;
-    private static final String connectionString = "jdbc:mysql://192.168.5.200:3306/"; //local
-    //private static final String connectionString = "jdbc:mysql://78.90.227.248:3306/"; //external
+    //private static final String connectionString = "jdbc:mysql://192.168.5.200:3306/"; //local
+    private static final String connectionString = "jdbc:mysql://78.90.227.248:3306/"; //external
 
     //private MyConnector() {}
 
-    public static void createConnection(String username, String password, String dbName) throws SQLException {
+    public static void createConnection(String user, String password, String dbName) throws SQLException {
         Properties properties = new Properties();
-        properties.setProperty("user", username);
+        properties.setProperty("user", user);
         properties.setProperty("password", password);
 
         connection = DriverManager.getConnection(connectionString + dbName, properties);

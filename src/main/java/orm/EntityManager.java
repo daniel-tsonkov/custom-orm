@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class EntityManager<E> implements DBContext<E> {
-    private final Connection connection;
+    private Connection connection;
 
     public EntityManager(Connection connection) {
         this.connection = connection;
@@ -45,47 +45,6 @@ public class EntityManager<E> implements DBContext<E> {
         return connection.prepareStatement(insertQuery).execute();
     }
 
-    private String getColumnsValuesWithoutId(E entity) throws IllegalAccessException {
-        Class<?> aClass = entity.getClass();
-        List<Field> fields = Arrays.stream(aClass.getDeclaredFields())
-                .filter(f -> !f.isAnnotationPresent(Id.class))
-                .filter(f -> f.isAnnotationPresent(Column.class))
-                .collect(Collectors.toList());
-
-        List<String> values = new ArrayList<>();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            Object o = field.get(aClass);
-
-            if (o instanceof String || o instanceof LocalDate) {
-                values.add("'" + o + "'");
-            } else {
-                values.add(o.toString());
-            }
-        }
-
-        return String.join(",", values);
-    }
-
-    private String getColumnsWithoutId(Class<?> aClass) {
-        return Arrays.stream(aClass.getDeclaredFields())
-                .filter(f -> !f.isAnnotationPresent(Id.class))
-                .filter(f -> f.isAnnotationPresent(Column.class))
-                .map(f -> f.getAnnotationsByType(Column.class))
-                .map(a -> a[0].name())
-                .collect(Collectors.joining(","));
-    }
-
-    private String getTableName(Class<?> aClass) {
-        Entity[] annotationsByType = aClass.getAnnotationsByType(Entity.class);
-
-        if (annotationsByType.length == 0) {
-            throw new UnsupportedOperationException("Class must be entity");
-        }
-
-        return annotationsByType[0].name();
-    }
-
     @Override
     public Iterable<E> find(Class<E> table) {
         return null;
@@ -113,4 +72,47 @@ public class EntityManager<E> implements DBContext<E> {
                 .orElseThrow(() ->
                         new UnsupportedOperationException("Entity missing an Id column"));
     }
+
+    private String getTableName(Class<?> aClass) {
+        Entity[] annotationsByType = aClass.getAnnotationsByType(Entity.class);
+
+        if (annotationsByType.length == 0) {
+            throw new UnsupportedOperationException("Class must be entity");
+        }
+
+        return annotationsByType[0].name();
+    }
+
+    private String getColumnsValuesWithoutId(E entity) throws IllegalAccessException {
+        Class<?> aClass = entity.getClass();
+        List<Field> fields = Arrays.stream(aClass.getDeclaredFields())
+                .filter(f -> !f.isAnnotationPresent(Id.class))
+                .filter(f -> f.isAnnotationPresent(Column.class))
+                .collect(Collectors.toList());
+
+        List<String> values = new ArrayList<>();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            Object o = field.get(entity);
+
+            if (o instanceof String || o instanceof LocalDate) {
+                values.add("'" + o + "'");
+            } else {
+                values.add(o.toString());
+            }
+        }
+
+        return String.join(",", values);
+    }
+
+    private String getColumnsWithoutId(Class<?> aClass) {
+        return Arrays.stream(aClass.getDeclaredFields())
+                .filter(f -> !f.isAnnotationPresent(Id.class))
+                .filter(f -> f.isAnnotationPresent(Column.class))
+                .map(f -> f.getAnnotationsByType(Column.class))
+                .map(a -> a[0].name())
+                .collect(Collectors.joining(","));
+    }
+
+
 }
