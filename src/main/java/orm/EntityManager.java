@@ -26,7 +26,7 @@ public class EntityManager<E> implements DBContext<E> {
         String fieldsWithTypes = getSQLFieldsWIthTypes(entityClass);
 
         String createQuery = String.format(
-                "CREATE TABLE %s (" + "id INT PRIMARY_KEY AUTO_INCREMENT, %s)",
+                "CREATE TABLE %s (" + "id INT PRIMARY KEY AUTO_INCREMENT, %s)",
                 tableName, fieldsWithTypes);
 
         PreparedStatement statement = connection.prepareStatement(createQuery);
@@ -35,7 +35,11 @@ public class EntityManager<E> implements DBContext<E> {
     }
 
     private String getSQLFieldsWIthTypes(Class<E> entityClass) {
-        return null;
+        List<Field> fields = Arrays.stream(entityClass.getDeclaredFields())
+                .filter(f -> !f.isAnnotationPresent(Id.class))
+                .filter(f -> f.isAnnotationPresent(Column.class))
+                .collect(Collectors.toList());
+                //.map(f -> f.getAnnotationsByType(Column.class));
     }
 
     @Override
