@@ -35,7 +35,7 @@ public class EntityManager<E> implements DBContext<E> {
     }
 
     private String getSQLFieldsWIthTypes(Class<E> entityClass) {
-        Arrays.stream(entityClass.getDeclaredFields())
+        return Arrays.stream(entityClass.getDeclaredFields())
                 .filter(f -> !f.isAnnotationPresent(Id.class))
                 .filter(f -> f.isAnnotationPresent(Column.class))
                 .map(field -> {
@@ -46,15 +46,14 @@ public class EntityManager<E> implements DBContext<E> {
                     if (type == Integer.class || type == int.class) {
                         sqlType = "INT";
                     } else if (type == String.class) {
-                        sqlType = "CARCHAR(200)";
+                        sqlType = "VARCHAR(200)";
                     } else if (type == LocalDate.class) {
                         sqlType = "DATE";
                     }
 
                     return fieldName + " " + sqlType;
-                });
-
-        return "";
+                })
+                .collect(Collectors.joining(","));
     }
 
     @Override
