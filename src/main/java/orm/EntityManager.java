@@ -7,12 +7,12 @@ import anotations.Id;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class EntityManager<E> implements DBContext<E> {
     private Connection connection;
@@ -34,17 +34,54 @@ public class EntityManager<E> implements DBContext<E> {
         statement.execute();
     }
 
-    public void doAlter(Class<E> entityClass) {
+    public void doAlter(Class<E> entityClass) throws SQLException {
         String tableName = getTableName(entityClass);
         String addColumnStatements = getAddColumnStatementsForNewFields(entityClass);
 
         String alterQuery = String.format("ALTER TABLE %s %s", tableName, addColumnStatements);
     }
 
-    private String getAddColumnStatementsForNewFields(Class<E> entityClass) {
+    private String getAddColumnStatementsForNewFields(Class<E> entityClass) throws SQLException {
+        Set<String> sqlColumns = getSQLColumnNames(entityClass);
 
+        List<Field> fields = Arrays.stream(entityClass.getDeclaredFields())
+                .filter(f -> !f.isAnnotationPresent(Id.class))
+                .filter(f -> f.isAnnotationPresent(Column.class))
+                .collect(Collectors.toList());
 
-        return "";
+        List<String> allAddStatements = new ArrayList<>();
+        for (Field field : fields) {
+            String fieldName = field.getAnnotationsByType(Column.class)[0].name();
+
+            if (sqlColumns.contains(fieldName)) {
+                continue;
+            }
+            String sqlType = getSQLType(field.getType());
+
+            String addStatements = String.format("ADD COLUMN %s %s", fieldName, sqlType);
+            allAddStatements.add(addStatements);
+        }
+
+        return String.join(",", allAddStatements);
+    }
+
+    private Set<String> getSQLColumnNames(Class<E> entityClass) throws SQLException {
+        String schemaQuery = "SELECT COLUMN_NAME FROM information_schema.`COLUMNS` c " +
+                "WHERE c.TABLE_SCHEMA = 'custom-orm' " +
+                "AND COLUMN_NAME != 'id' AND TABLE_NAME = 'users';";
+
+        PreparedStatement statement = connection.prepareStatement(schemaQuery);
+
+        ResultSet resultSet = statement.executeQuery();
+
+        Set<String> result = new HashSet<>();
+        while (resultSet.next()) {
+            String columnName = resultSet.getString("COLUMN_NAME");
+
+            result.add(columnName);
+        }
+
+        return result;
     }
 
     @Override
@@ -147,19 +184,24 @@ public class EntityManager<E> implements DBContext<E> {
                 .filter(f -> f.isAnnotationPresent(Column.class))
                 .map(field -> {
                     String fieldName = field.getAnnotationsByType(Column.class)[0].name();
-                    Class<?> type = field.getType();
 
-                    String sqlType = "DOUBLE";
-                    if (type == Integer.class || type == int.class) {
-                        sqlType = "INT";
-                    } else if (type == String.class) {
-                        sqlType = "VARCHAR(200)";
-                    } else if (type == LocalDate.class) {
-                        sqlType = "DATE";
-                    }
+
+                    String sqlType = getSQLType(field.getType());
 
                     return fieldName + " " + sqlType;
                 })
                 .collect(Collectors.joining(","));
+    }
+
+    private static String getSQLType(Class<?> type) {
+        String sqlType = "DOUBLE";
+        if (type == Integer.class || type == int.class) {
+            sqlType = "INT";
+        } else if (type == String.class) {
+            sqlType = "VARCHAR(200)";
+        } else if (type == LocalDate.class) {
+            sqlType = "DATE";
+        }
+        return sqlType;
     }
 }
