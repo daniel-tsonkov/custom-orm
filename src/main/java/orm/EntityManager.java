@@ -34,28 +34,6 @@ public class EntityManager<E> implements DBContext<E> {
         statement.execute();
     }
 
-    private String getSQLFieldsWIthTypes(Class<E> entityClass) {
-        return Arrays.stream(entityClass.getDeclaredFields())
-                .filter(f -> !f.isAnnotationPresent(Id.class))
-                .filter(f -> f.isAnnotationPresent(Column.class))
-                .map(field -> {
-                    String fieldName = field.getAnnotationsByType(Column.class)[0].name();
-                    Class<?> type = field.getType();
-
-                    String sqlType = "";
-                    if (type == Integer.class || type == int.class) {
-                        sqlType = "INT";
-                    } else if (type == String.class) {
-                        sqlType = "VARCHAR(200)";
-                    } else if (type == LocalDate.class) {
-                        sqlType = "DATE";
-                    }
-
-                    return fieldName + " " + sqlType;
-                })
-                .collect(Collectors.joining(","));
-    }
-
     @Override
     public boolean persist(E entity) throws IllegalAccessException, SQLException {
         Field idColumn = getIdColumn(entity.getClass());
@@ -150,5 +128,25 @@ public class EntityManager<E> implements DBContext<E> {
                 .collect(Collectors.joining(","));
     }
 
+    private String getSQLFieldsWIthTypes(Class<E> entityClass) {
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .filter(f -> !f.isAnnotationPresent(Id.class))
+                .filter(f -> f.isAnnotationPresent(Column.class))
+                .map(field -> {
+                    String fieldName = field.getAnnotationsByType(Column.class)[0].name();
+                    Class<?> type = field.getType();
 
+                    String sqlType = "DOUBLE";
+                    if (type == Integer.class || type == int.class) {
+                        sqlType = "INT";
+                    } else if (type == String.class) {
+                        sqlType = "VARCHAR(200)";
+                    } else if (type == LocalDate.class) {
+                        sqlType = "DATE";
+                    }
+
+                    return fieldName + " " + sqlType;
+                })
+                .collect(Collectors.joining(","));
+    }
 }
