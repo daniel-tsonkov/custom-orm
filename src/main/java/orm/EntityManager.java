@@ -6,6 +6,7 @@ import anotations.Id;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,6 +19,23 @@ public class EntityManager<E> implements DBContext<E> {
 
     public EntityManager(Connection connection) {
         this.connection = connection;
+    }
+
+    public void doCreate(Class<E> entityClass) throws SQLException {
+        String tableName = getTableName(entityClass);
+        String fieldsWithTypes = getSQLFieldsWIthTypes(entityClass);
+
+        String createQuery = String.format(
+                "CREATE TABLE %s (" + "id INT PRIMARY_KEY AUTO_INCREMENT, %s)",
+                tableName, fieldsWithTypes);
+
+        PreparedStatement statement = connection.prepareStatement(createQuery);
+
+        statement.execute();
+    }
+
+    private String getSQLFieldsWIthTypes(Class<E> entityClass) {
+        return null;
     }
 
     @Override
