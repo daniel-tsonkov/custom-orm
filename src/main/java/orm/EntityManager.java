@@ -34,6 +34,19 @@ public class EntityManager<E> implements DBContext<E> {
         statement.execute();
     }
 
+    public void doAlter(Class<E> entityClass) {
+        String tableName = getTableName(entityClass);
+        String addColumnStatements = getAddColumnStatementsForNewFields(entityClass);
+
+        String alterQuery = String.format("ALTER TABLE %s %s", tableName, addColumnStatements);
+    }
+
+    private String getAddColumnStatementsForNewFields(Class<E> entityClass) {
+
+
+        return "";
+    }
+
     @Override
     public boolean persist(E entity) throws IllegalAccessException, SQLException {
         Field idColumn = getIdColumn(entity.getClass());
