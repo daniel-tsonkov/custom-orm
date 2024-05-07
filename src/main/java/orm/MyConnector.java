@@ -7,7 +7,8 @@ import java.util.Properties;
 
 public class MyConnector {
     private static Connection connection;
-    private static final String connectionString = "jdbc:mysql://192.168.5.200:3306/";
+    private static final String connectionString = "jdbc:mysql://192.168.5.200:3306/"; //local
+    //private static final String connectionString = "jdbc:mysql://78.90.227.248:3306/"; //external
 
     //private MyConnector() {}
 
