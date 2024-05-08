@@ -154,10 +154,11 @@ public class EntityManager<E> implements DBContext<E> {
         String tableName = getTableName(table);
 
         String selectQuery = String.format("SELECT * FROM %s %s LIMIT 1",
-                tableName, where != null ? where : "");
+                tableName, where != null ? "WHERE" + where : "");
 
         PreparedStatement statement = connection.prepareStatement(selectQuery);
         ResultSet resultSet = statement.executeQuery();
+        
         resultSet.next();
 
         E result = table.getDeclaredConstructor().newInstance();
@@ -181,6 +182,10 @@ public class EntityManager<E> implements DBContext<E> {
 
         if (fieldType == int.class || fieldType == Integer.class) {
             int value = resultSet.getInt(fieldName);
+
+            declaredField.set(entity, value);
+        } else if (fieldType == long.class || fieldType == Long.class) {
+            long value = resultSet.getLong(fieldName);
 
             declaredField.set(entity, value);
         } else if (fieldType == LocalDate.class) {
