@@ -166,8 +166,22 @@ public class EntityManager<E> implements DBContext<E> {
         return result;
     }
 
-    private void fillEntity(Class<E> table, ResultSet resultSet, E result) {
+    private void fillEntity(Class<E> table, ResultSet resultSet, E entity) throws SQLException {
+        Field[] declareFields = table.getDeclaredFields();
 
+        for (Field declaredField : declareFields) {
+            declaredField.setAccessible(true);
+            fillFiled(declaredField, resultSet, entity);
+        }
+    }
+
+    private void fillFiled(Field declaredField, ResultSet resultSet, E entity) throws SQLException {
+        Class<?> fieldType = declaredField.getType();
+        String fieldNmae = declaredField.getName();
+
+        if (fieldType == int.class || fieldType == Integer.class) {
+            resultSet.getInt(fieldNmae);
+        }
     }
 
     private Field getIdColumn(Class<?> clazz) {
