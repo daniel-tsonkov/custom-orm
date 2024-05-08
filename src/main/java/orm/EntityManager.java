@@ -39,6 +39,9 @@ public class EntityManager<E> implements DBContext<E> {
         String addColumnStatements = getAddColumnStatementsForNewFields(entityClass);
 
         String alterQuery = String.format("ALTER TABLE %s %s", tableName, addColumnStatements);
+
+        connection.prepareStatement(alterQuery);
+
     }
 
     private String getAddColumnStatementsForNewFields(Class<E> entityClass) throws SQLException {
