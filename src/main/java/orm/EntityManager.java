@@ -140,13 +140,29 @@ public class EntityManager<E> implements DBContext<E> {
     }
 
     @Override
-    public Iterable<E> find(Class<E> table, String where) {
-        return null;
+    public Iterable<E> find(Class<E> table, String where) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        String tableName = getTableName(table);
+
+        String selectQuery = String.format("SELECT * FROM %s %s;",
+                tableName, where != null ? "WHERE " + where : "");
+
+        PreparedStatement statement = connection.prepareStatement(selectQuery);
+        ResultSet resultSet = statement.executeQuery();
+
+        List<E> result = new ArrayList<>();
+        while (resultSet.next()) {
+            E entity = table.getDeclaredConstructor().newInstance();
+            fillEntity(table, resultSet, entity);
+
+            result.add(entity);
+        }
+
+        return result;
     }
 
     @Override
-    public E findFirst(Class<E> table) {
-        return null;
+    public E findFirst(Class<E> table) throws SQLException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return findFirst(table, null);
     }
 
     @Override
@@ -154,7 +170,7 @@ public class EntityManager<E> implements DBContext<E> {
         String tableName = getTableName(table);
 
         String selectQuery = String.format("SELECT * FROM %s %s LIMIT 1",
-                tableName, where != null ? "WHERE" + where : "");
+                tableName, where != null ? "WHERE " + where : "");
 
         PreparedStatement statement = connection.prepareStatement(selectQuery);
         ResultSet resultSet = statement.executeQuery();
@@ -178,7 +194,7 @@ public class EntityManager<E> implements DBContext<E> {
 
     private void fillFiled(Field declaredField, ResultSet resultSet, E entity) throws SQLException, IllegalAccessException {
         Class<?> fieldType = declaredField.getType();
-        String fieldName = declaredField.getName();
+        String fieldName = declaredField.getAnnotationsByType(Column.class)[0].name();
 
         if (fieldType == int.class || fieldType == Integer.class) {
             int value = resultSet.getInt(fieldName);
