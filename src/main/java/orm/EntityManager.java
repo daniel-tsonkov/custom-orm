@@ -166,7 +166,7 @@ public class EntityManager<E> implements DBContext<E> {
         return result;
     }
 
-    private void fillEntity(Class<E> table, ResultSet resultSet, E entity) throws SQLException {
+    private void fillEntity(Class<E> table, ResultSet resultSet, E entity) throws SQLException, IllegalAccessException {
         Field[] declareFields = table.getDeclaredFields();
 
         for (Field declaredField : declareFields) {
@@ -175,12 +175,22 @@ public class EntityManager<E> implements DBContext<E> {
         }
     }
 
-    private void fillFiled(Field declaredField, ResultSet resultSet, E entity) throws SQLException {
+    private void fillFiled(Field declaredField, ResultSet resultSet, E entity) throws SQLException, IllegalAccessException {
         Class<?> fieldType = declaredField.getType();
-        String fieldNmae = declaredField.getName();
+        String fieldName = declaredField.getName();
 
         if (fieldType == int.class || fieldType == Integer.class) {
-            resultSet.getInt(fieldNmae);
+            int value = resultSet.getInt(fieldName);
+
+            declaredField.set(entity, value);
+        } else if (fieldType == LocalDate.class) {
+                LocalDate value = LocalDate.parse(resultSet.getString(fieldName));
+
+                declaredField.set(entity, value);
+        } else {
+            String value = resultSet.getString(fieldName);
+
+            declaredField.set(entity, value);
         }
     }
 
