@@ -135,15 +135,15 @@ public class EntityManager<E> implements DBContext<E> {
     }
 
     @Override
-    public Iterable<E> find(Class<E> table) {
-        return null;
+    public Iterable<E> find(Class<E> table) throws SQLException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return find(table, null);
     }
 
     @Override
     public Iterable<E> find(Class<E> table, String where) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         String tableName = getTableName(table);
 
-        String selectQuery = String.format("SELECT * FROM %s %s;",
+        String selectQuery = String.format("SELECT * FROM %s %s",
                 tableName, where != null ? "WHERE " + where : "");
 
         PreparedStatement statement = connection.prepareStatement(selectQuery);
