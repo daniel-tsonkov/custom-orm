@@ -28,6 +28,7 @@ public class User {
         this.username = username;
         this.age = age;
         this.registrationDate = registrationDate;
+        this.lastLoggedIn = LocalDate.now();
     }
 
     private LocalDate updatedAt;
