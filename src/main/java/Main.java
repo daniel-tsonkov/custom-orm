@@ -17,7 +17,7 @@ public class Main {
 
         User user = new User("Pesho", 25, LocalDate.now());
         user.setId(2);
-        user.setUsername("pesho_new");
+        user.setUsername("pesho_new_final");
 
         //userEntityManager.doCreate(User.class);
         //userEntityManager.doAlter(User.class);

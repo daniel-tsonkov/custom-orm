@@ -93,13 +93,13 @@ public class EntityManager<E> implements DBContext<E> {
         Object idValue = idColumn.get(entity);
 
         if (idValue == null || (long) idValue <= 0) {
-            return doInsert(entity, idColumn);
+            return doInsert(entity);
         }
 
-        return doUpdate(entity, idColumn);
+        return doUpdate(entity, (long) idValue);
     }
 
-    private boolean doInsert(E entity, Field idColumn) throws SQLException, IllegalAccessException {
+    private boolean doInsert(E entity) throws SQLException, IllegalAccessException {
         String tableName = getTableName(entity.getClass());
         List<String> tableFields = getColumnsWithoutId(entity.getClass());
         List<String> tableValues = getColumnsValuesWithoutId(entity);
@@ -109,10 +109,11 @@ public class EntityManager<E> implements DBContext<E> {
                 String.join(",", tableFields),
                 String.join(",", tableValues));
 
-        return connection.prepareStatement(insertQuery).execute();
+        PreparedStatement statement = connection.prepareStatement(insertQuery);
+        return statement.execute();
     }
 
-    private boolean doUpdate(E entity, Field idColumn) throws SQLException, IllegalAccessException {
+    private boolean doUpdate(E entity, long idValue) throws SQLException, IllegalAccessException {
         String tableName = getTableName(entity.getClass());
         List<String> tableFields = getColumnsWithoutId(entity.getClass());
         List<String> tableValues = getColumnsValuesWithoutId(entity);
@@ -123,10 +124,13 @@ public class EntityManager<E> implements DBContext<E> {
             setStatements.add(statement);
         }
 
-        String updateQuery = String.format("UPDATE %s SET %s", tableName,
-                String.join(",", setStatements));
+        String updateQuery = String.format("UPDATE %s SET %s WHERE id = %d",
+                tableName,
+                String.join(",", setStatements),
+                idValue);
 
-        return connection.prepareStatement(updateQuery).execute();
+        PreparedStatement statement = connection.prepareStatement(updateQuery);
+        return statement.execute();
     }
 
     @Override
